@@ -1,0 +1,113 @@
+#include <FEHLCD.h>
+#include <FEHIO.h>
+#include <FEHUtility.h>
+#include <FEHMotor.h>
+#include <FEHRPS.h>
+
+//Declarations for encoders & motors
+DigitalEncoder right_encoder(FEHIO::P0_0);
+DigitalEncoder left_encoder(FEHIO::P0_1);
+FEHMotor right_motor(FEHMotor::Motor0,9.0);
+FEHMotor left_motor(FEHMotor::Motor1,9.0);
+
+void move_forward(int percent, int counts) //using encoders
+{
+    //Reset encoder counts
+    right_encoder.ResetCounts();
+    left_encoder.ResetCounts();
+
+    //Set both motors to desired percent
+    right_motor.SetPercent(percent);
+    left_motor.SetPercent(percent);
+
+    //While the average of the left and right encoder is less than counts,
+    //keep running motors
+    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
+
+    //Turn off motors
+    right_motor.Stop();
+    left_motor.Stop();
+}
+
+void turn_right(int percent,int counts)
+//usingencoders
+{
+    //Resetencodercounts
+    right_encoder.ResetCounts();
+    left_encoder.ResetCounts();
+    //Set both motors to desired percent
+    //hint:setrightmotorbackwards,leftmotorforwards
+
+    right_motor.SetPercent(-15);
+    left_motor.SetPercent(30);
+
+    //Whiletheaverageoftheleftandrightencoderislessthancounts,
+    //keeprunningmotors
+    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
+
+    //Turnoffmotors
+    right_motor.Stop();
+    left_motor.Stop();
+ }
+
+void turn_left(int percent,int counts)
+//usingencoders
+{
+    //Resetencodercounts
+    right_encoder.ResetCounts();
+    left_encoder.ResetCounts();
+    //Set both motors to desired percent
+    //hint:setrightmotorbackwards,leftmotorforwards
+
+    right_motor.SetPercent(30);
+    left_motor.SetPercent(-15);
+
+    //Whiletheaverageoftheleftandrightencoderislessthancounts,
+    //keeprunningmotors
+    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts);
+
+    //Turnoffmotors
+    right_motor.Stop();
+    left_motor.Stop();
+ }
+
+int main(void)
+{
+    int motor_percent = 25; //Input power level here
+    int expected_counts = 567; //Input theoretical counts here
+    int turncounts=225; //bc counts on turns should be relatively the same
+
+    float x, y; //for touch screen
+
+    //Initialize the screen
+    LCD.Clear(BLACK);
+    LCD.SetFontColor(WHITE);
+
+    LCD.WriteLine("Shaft Encoder Exploration Test");
+    LCD.WriteLine("Touch the screen");
+    while(!LCD.Touch(&x,&y)); //Wait for screen to be pressed
+    while(LCD.Touch(&x,&y)); //Wait for screen to be unpressed
+
+  //move forward 14 inches
+    move_forward(motor_percent, expected_counts); //see function
+
+  //call turn right function
+    turn_right(motor_percent,turncounts);
+
+    //reset expected counts to move forward 10 in
+    expected_counts=405;
+
+    //call move forward function
+    move_forward(motor_percent,expected_counts);
+
+    //call turn left function
+    turn_left(motor_percent,turncounts);
+
+    //reset expected counts to move 4 inches
+    expected_counts=162;
+
+    //call move forward function
+    move_forward(motor_percent,expected_counts);
+
+    return 0;
+}
